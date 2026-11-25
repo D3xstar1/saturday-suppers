@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solara – Reserve and pre-order</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f1f4f0;--surface:#fff;--ink:#14201b;--muted:#5b6a62;--line:#d5ddd6;--accent:#c8331f;--accent-ink:#fff;--green:#1f5a3c;--soft:#e4ece5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1713;--surface:#18231d;--ink:#eef3ef;--muted:#9fb0a6;--line:#2c3a32;--accent:#ee6a52;--accent-ink:#14201b;--green:#6fd29b;--soft:#1e2c24}}
+:root[data-theme="dark"]{--bg:#0f1713;--surface:#18231d;--ink:#eef3ef;--muted:#9fb0a6;--line:#2c3a32;--accent:#ee6a52;--accent-ink:#14201b;--green:#6fd29b;--soft:#1e2c24}
+*{box-sizing:border-box}
+html{color-scheme:light dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:28px 18px 64px}
+h1{font-size:clamp(2.2rem,8vw,3.4rem);line-height:1;margin:0 0 10px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.15rem;margin:0 0 12px;font-weight:600}
+.lede{color:var(--muted);margin:0 0 6px;max-width:52ch}
+.demo{display:inline-block;background:var(--soft);color:var(--green);font-size:.85rem;padding:4px 10px;border-radius:99px;margin:14px 0 26px}
+section{margin-bottom:28px}
+.nights{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.night{text-align:left;font:inherit;color:inherit;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px;cursor:pointer}
+.night b{display:block;font-size:1.5rem;line-height:1.1}
+.night span{display:block;color:var(--muted);font-size:.9rem}
+.night[aria-pressed="true"]{border-color:var(--accent)}
+.night:disabled{opacity:.5;cursor:not-allowed}
+.low{color:var(--accent)!important;font-weight:600}
+.field{display:block;margin-bottom:12px}
+.field>span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper button{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.4rem;cursor:pointer}
+.stepper output{font-size:1.5rem;font-weight:800;min-width:2ch;text-align:center}
+.guest{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.guest h3{margin:0 0 10px;font-size:1rem}
+.total{background:var(--ink);color:var(--bg);border-radius:14px;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.total strong{font-size:1.8rem}
+.lines{font-size:.9rem;opacity:.85;margin:0;padding:0;list-style:none}
+button.pay{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:13px 22px;cursor:pointer;width:100%;margin-top:14px;font-size:1.05rem}
+button.pay:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--accent);font-size:.9rem;min-height:1.3em;margin:8px 0 0}
+.ticket{background:var(--surface);border:2px solid var(--green);border-radius:14px;padding:20px}
+.ticket h2{color:var(--green);font-size:1.5rem}
+.ticket li{margin-bottom:4px}
+.link{background:none;border:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer;padding:0;margin-top:10px}
+.note{font-size:.85rem;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<div id="booking">
+  <h1>Solara</h1>
+  <p class="lede">Every Saturday in December. Reserve your table, choose your food and drinks ahead, and your order is ready to come out first when you arrive.</p>
+  <span class="demo">Demo page: sample menu, prices and seat numbers</span>
+
+  <section>
+    <h2>1. Choose your Saturday</h2>
+    <div class="nights" id="nights"></div>
+  </section>
+
+  <section>
+    <h2>2. Your details</h2>
+    <div class="row">
+      <label class="field"><span>Full name</span><input id="name" autocomplete="name"></label>
+      <label class="field"><span>Phone (WhatsApp)</span><input id="phone" type="tel" autocomplete="tel"></label>
+    </div>
+    <label class="field"><span>Email</span><input id="email" type="email" autocomplete="email"></label>
+  </section>
+
+  <section>
+    <h2>3. Number of guests</h2>
+    <div class="stepper">
+      <button type="button" id="minus" aria-label="Fewer guests">−</button>
+      <output id="count">2</output>
+      <button type="button" id="plus" aria-label="More guests">+</button>
+      <span class="note" id="seatnote"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Pick food and drinks for each guest</h2>
+    <div id="guests"></div>
+    <label class="field"><span>Allergies or special requests (optional)</span><textarea id="notes" rows="2"></textarea></label>
+  </section>
+
+  <div class="total">
+    <div><div>Total</div><ul class="lines" id="lines"></ul></div>
+    <strong id="total">₦0</strong>
+  </div>
+  <button class="pay" id="pay" type="button">Pay and confirm booking</button>
+  <p class="err" id="err" role="alert"></p>
+</div>
+
+<div id="done" hidden>
+  <div class="ticket">
+    <h2>Booking confirmed</h2>
+    <p id="doneMsg"></p>
+    <ul id="doneList"></ul>
+    <p class="note">Demo only: in the real version, the button above sends the guest to a Paystack or Flutterwave payment page for this exact amount, and you receive the booking in a spreadsheet sorted by Saturday.</p>
+    <button class="link" id="again" type="button">Make another booking</button>
+  </div>
+</div>
+</main>
+
+<script>
+const NIGHTS=[
+ {id:"2026-12-05",label:"Sat 5 Dec",seats:20},
+ {id:"2026-12-12",label:"Sat 12 Dec",seats:14},
+ {id:"2026-12-19",label:"Sat 19 Dec",seats:5},
+ {id:"2026-12-26",label:"Sat 26 Dec",seats:0}
+];
+const MAINS=[
+ ["Jollof rice with grilled chicken",9500],
+ ["Pounded yam with egusi",8500],
+ ["Grilled salmon with plantain",14000],
+ ["Vegetable pasta (vegetarian)",7500]
+];
+const DRINKS=[
+ ["Chapman",3000],["Fresh pineapple juice",2500],["Glass of red wine",5000],
+ ["Glass of white wine",5000],["Bottled water",1000]
+];
+const DESSERT=[["None",0],["Puff puff with chocolate",3000],["Coconut ice cream",3500]];
+const $=id=>document.getElementById(id);
+const naira=n=>"₦"+n.toLocaleString("en-NG");
+let night=null,count=2,picks=[];
+
+function opts(list,withNone){
+  return (withNone?[]:[["Choose…",0,true]]).concat(list.map(x=>x)).map((x,i)=>{
+    return `<option value="${withNone?i:i-1}">${x[0]}${x[1]?" – "+naira(x[1]):""}</option>`;
+  }).join("");
+}
+function seatsLeft(n){return n.seats}
+function renderNights(){
+  $("nights").innerHTML=NIGHTS.map((n,i)=>{
+    const full=n.seats<=0;
+    const cls=!full&&n.seats<=6?"low":"";
+    return `<button type="button" class="night" data-i="${i}" ${full?"disabled":""} aria-pressed="${night===i}">
+      <b>${n.label}</b><span class="${cls}">${full?"Fully booked":n.seats+" seats left"}</span></button>`;
+  }).join("");
+  document.querySelectorAll(".night").forEach(b=>b.onclick=()=>{night=+b.dataset.i;
+    if(count>NIGHTS[night].seats)count=NIGHTS[night].seats;update(true)});
+}
+function renderGuests(){
+  while(picks.length<count)picks.push({m:-1,d:-1,s:0});
+  picks.length=count;
+  $("guests").innerHTML=picks.map((p,i)=>`<div class="guest"><h3>Guest ${i+1}</h3>
+    <label class="field"><span>Main course</span><select data-i="${i}" data-k="m">${opts(MAINS)}</select></label>
+    <div class="row">
+    <label class="field"><span>Drink</span><select data-i="${i}" data-k="d">${opts(DRINKS)}</select></label>
+    <label class="field"><span>Dessert</span><select data-i="${i}" data-k="s">${opts(DESSERT,true)}</select></label>
+    </div></div>`).join("");
+  document.querySelectorAll("#guests select").forEach(s=>{
+    const p=picks[+s.dataset.i];s.value=p[s.dataset.k];
+    s.onchange=()=>{p[s.dataset.k]=+s.value;update(false)};
+  });
+}
+function totals(){
+  let t=0,m=0,d=0,s=0;
+  picks.forEach(p=>{
+    if(p.m>=0)m+=MAINS[p.m][1];
+    if(p.d>=0)d+=DRINKS[p.d][1];
+    s+=DESSERT[p.s][1];
+  });
+  return {m,d,s,t:m+d+s};
+}
+function update(rebuild){
+  $("count").textContent=count;
+  if(rebuild!==false){renderNights();renderGuests()}
+  const left=night===null?null:NIGHTS[night].seats;
+  $("seatnote").textContent=left===null?"":"Up to "+left+" for this night";
+  const x=totals();
+  $("lines").innerHTML=`<li>Food ${naira(x.m)}</li><li>Drinks ${naira(x.d)}</li>${x.s?`<li>Dessert ${naira(x.s)}</li>`:""}`;
+  $("total").textContent=naira(x.t);
+}
+$("minus").onclick=()=>{if(count>1){count--;update(true)}};
+$("plus").onclick=()=>{
+  const max=night===null?10:Math.min(10,NIGHTS[night].seats);
+  if(count<max){count++;update(true)}
+  else $("err").textContent=night===null?"Choose a Saturday first.":"Only "+NIGHTS[night].seats+" seats left on that night.";
+};
+$("pay").onclick=()=>{
+  const e=$("err");e.textContent="";
+  if(night===null)return e.textContent="Choose a Saturday.";
+  if(!$("name").value.trim())return e.textContent="Enter your full name.";
+  if(!/^[+\d][\d\s-]{7,}$/.test($("phone").value.trim()))return e.textContent="Enter a valid phone number.";
+  if(!/^\S+@\S+\.\S+$/.test($("email").value.trim()))return e.textContent="Enter a valid email address.";
+  const i=picks.findIndex(p=>p.m<0||p.d<0);
+  if(i>=0)return e.textContent="Guest "+(i+1)+": choose a main course and a drink.";
+  const n=NIGHTS[night],x=totals();
+  n.seats-=count;
+  $("doneMsg").textContent=`Thank you, ${$("name").value.trim()}. Table for ${count} on ${n.label}. Total paid: ${naira(x.t)}.`;
+  $("doneList").innerHTML=picks.map((p,k)=>`<li>Guest ${k+1}: ${MAINS[p.m][0]}, ${DRINKS[p.d][0]}${p.s?", "+DESSERT[p.s][0]:""}</li>`).join("");
+  $("booking").hidden=true;$("done").hidden=false;scrollTo(0,0);
+};
+$("again").onclick=()=>{night=null;count=2;picks=[];$("notes").value="";
+  $("done").hidden=true;$("booking").hidden=false;update(true)};
+update(true);
+</script>
+</body>
+</html>
